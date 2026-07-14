@@ -82,8 +82,7 @@ export function parseTestResult(output: string): TestResult {
   const passed = extractCount(output, /(\d+)\s+pass(?:ed|ing)/i);
   const failed = extractCount(output, /(\d+)\s+fail(?:ed|ing)/i);
 
-  // If no counts found, try summary line: "Tests  N passed (N)"
-  const totalMatch = output.match(/Tests\s+(\d+)\s+passed/i);
+  // If no counts found, try summary line
   const failCountMatch = output.match(/Tests\s+(\d+)\s+failed/i);
   const passCountMatch = output.match(/(\d+)\s+passed\s*\(/i);
 
