@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { parseTestResult, parseLintResult } from './feedback-parsers.js';
-import type { FeedbackCheck } from './feedback-parsers.js';
 
 // ── Test result parser ──
 

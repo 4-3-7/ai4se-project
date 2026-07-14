@@ -99,7 +99,7 @@ export class MemoryStore {
       content: body,
       metadata: {
         type: (meta['type'] as MemoryEntry['metadata']['type']) || 'knowledge',
-        tags: meta['tags'] ? meta['tags'].replace(/[\[\]]/g, '').split(',').map((t: string) => t.trim()) : [],
+        tags: meta['tags'] ? meta['tags'].replace(/[[\]]/g, '').split(',').map((t: string) => t.trim()) : [],
         createdAt: meta['createdAt'] ? new Date(meta['createdAt']) : new Date(),
         updatedAt: meta['updatedAt'] ? new Date(meta['updatedAt']) : new Date(),
         relevance: meta['relevance'] ? parseFloat(meta['relevance']) : 0.5,

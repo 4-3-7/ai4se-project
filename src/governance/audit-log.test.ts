@@ -60,7 +60,7 @@ describe('AuditLogger', () => {
 
   it('should create the log directory', () => {
     const dir = path.join(os.tmpdir(), `seahorse-audit-test-new-${Date.now()}`);
-    const localLogger = new AuditLogger({ logDir: dir });
+    void new AuditLogger({ logDir: dir });
 
     expect(fs.existsSync(dir)).toBe(true);
 

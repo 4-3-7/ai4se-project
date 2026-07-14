@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { AnthropicProvider } from './anthropic.js';
 import type { Message, LLMResponse } from './types.js';
-import { LLMAuthError, LLMRateLimitError, LLMServerError, LLMTimeoutError } from './types.js';
+import { LLMAuthError, LLMRateLimitError, LLMServerError } from './types.js';
 
 // ── Helpers ──
 

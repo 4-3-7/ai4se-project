@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { checkAction } from './guardrail.js';
-import type { GuardrailDecision } from './guardrail.js';
 import type { Action } from '../core/action-parser.js';
 
 // ── Helpers ──
