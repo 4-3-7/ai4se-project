@@ -102,4 +102,22 @@ program
     console.log('='.repeat(50));
   });
 
+// ── web ──
+
+program
+  .command('web')
+  .description('Start the Web UI terminal (xterm.js + WebSocket)')
+  .option('-p, --port <port>', 'Port to listen on', '3000')
+  .action(async (options: { port: string }) => {
+    const port = parseInt(options.port, 10);
+    console.log('🐴 Seahorse — Web Terminal');
+    console.log('');
+    console.log(`Starting server on http://localhost:${port}...`);
+    console.log('');
+
+    // Dynamic import — ws is only needed for the web command
+    const { startWebServer } = await import('../web/server.js');
+    await startWebServer(port);
+  });
+
 program.parse();
