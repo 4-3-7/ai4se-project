@@ -1,5 +1,5 @@
 import type { Action } from '../core/action-parser.js';
-import { DANGER_PATTERNS, type DangerPattern } from './danger-patterns.js';
+import { DANGER_PATTERNS } from './danger-patterns.js';
 
 /**
  * Result of a guardrail check.

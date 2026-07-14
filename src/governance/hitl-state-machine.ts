@@ -59,7 +59,6 @@ export class SessionTerminatedError extends Error {
 export class HITLStateMachine {
   private state: HITLState = 'idle';
   private pendingAction: Action | null = null;
-  private pendingDecision: GuardrailDecision | null = null;
   private timer: ReturnType<typeof setTimeout> | null = null;
   private config: HITLConfig;
 
@@ -95,7 +94,6 @@ export class HITLStateMachine {
 
     this.state = 'paused';
     this.pendingAction = action;
-    this.pendingDecision = decision;
     this.turnNumber++;
 
     // Start auto-deny timer
@@ -127,7 +125,6 @@ export class HITLStateMachine {
     // Reset state before handling the decision
     this.state = 'idle';
     this.pendingAction = null;
-    this.pendingDecision = null;
 
     if (action === 'terminate') {
       throw new SessionTerminatedError();
@@ -147,7 +144,6 @@ export class HITLStateMachine {
       // Auto-deny on timeout
       this.state = 'idle';
       this.pendingAction = null;
-      this.pendingDecision = null;
     }, this.config.timeoutMs);
   }
 
