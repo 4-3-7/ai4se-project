@@ -1,4 +1,4 @@
-import { exec } from 'node:child_process';
+import { exec, type ExecException } from 'node:child_process';
 import type { Tool, ToolResult } from './types.js';
 
 /** Configuration for the shell exec tool */
@@ -50,15 +50,15 @@ function execCommand(args: ShellExecArgs, config: ShellExecConfig): Promise<Tool
         const duration = Date.now() - startTime;
 
         if (error) {
-          const isTimeout = (error as NodeJS.ErrnoException).code === 'ETIMEDOUT' ||
-            (error as NodeJS.ErrnoException).killed === true;
+          const execErr = error as ExecException;
+          const isTimeout = execErr.killed === true;
 
           resolve({
             success: false,
             data: {
               stdout,
               stderr,
-              exitCode: (error as NodeJS.ErrnoException).code === 'ETIMEDOUT' ? -1 : ((error as { code?: number }).code ?? 1),
+              exitCode: isTimeout ? -1 : (execErr.code ?? 1),
             },
             error: isTimeout ? `Command timed out after ${timeout}ms.` : error.message,
             duration,
