@@ -64,6 +64,10 @@ export class HITLStateMachine {
 
   private turnNumber = 0;
 
+  /** Promise resolution for waitForResolution() */
+  private resolvePromise: ((value: HITLDecision) => void) | null = null;
+  private rejectPromise: ((reason: Error) => void) | null = null;
+
   constructor(config: HITLConfig = { timeoutMs: 300_000 }) {
     this.config = config;
   }
@@ -81,6 +85,18 @@ export class HITLStateMachine {
   /** Get the currently pending action (while paused). */
   getPendingAction(): Action | null {
     return this.pendingAction;
+  }
+
+  /**
+   * Wait for the user to resolve the paused state.
+   * Returns a Promise that resolves when `resolve()` is called,
+   * or auto-denies on timeout.
+   */
+  waitForResolution(): Promise<HITLDecision> {
+    return new Promise<HITLDecision>((resolve, reject) => {
+      this.resolvePromise = resolve;
+      this.rejectPromise = reject;
+    });
   }
 
   /**
@@ -122,18 +138,32 @@ export class HITLStateMachine {
 
     this.clearTimer();
 
-    // Reset state before handling the decision
+    const resolvePromise = this.resolvePromise;
+    const rejectPromise = this.rejectPromise;
+    this.resolvePromise = null;
+    this.rejectPromise = null;
+
+    // Reset state
     this.state = 'idle';
     this.pendingAction = null;
 
     if (action === 'terminate') {
-      throw new SessionTerminatedError();
+      const err = new SessionTerminatedError();
+      if (rejectPromise) {
+        rejectPromise(err);
+      }
+      throw err;
     }
 
     const result: HITLDecision = { action };
     if (modifiedCommand) {
       result.modifiedCommand = modifiedCommand;
     }
+
+    if (resolvePromise) {
+      resolvePromise(result);
+    }
+
     return result;
   }
 
@@ -142,8 +172,14 @@ export class HITLStateMachine {
     this.clearTimer();
     this.timer = setTimeout(() => {
       // Auto-deny on timeout
+      const resolvePromise = this.resolvePromise;
+      this.resolvePromise = null;
+      this.rejectPromise = null;
       this.state = 'idle';
       this.pendingAction = null;
+      if (resolvePromise) {
+        resolvePromise({ action: 'deny' });
+      }
     }, this.config.timeoutMs);
   }
 

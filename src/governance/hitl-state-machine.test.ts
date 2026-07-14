@@ -174,4 +174,55 @@ describe('HITLStateMachine', () => {
     expect(error.name).toBe('SessionTerminatedError');
     expect(error.message).toContain('terminated');
   });
+
+  // ── waitForResolution ──
+
+  it('should resolve waitForResolution with user decision on ALLOW', async () => {
+    hitl.pause(makeAction(), makeBlockedDecision());
+
+    const promise = hitl.waitForResolution();
+
+    // Resolve by the same hitl instance
+    hitl.resolve('allow');
+
+    const result = await promise;
+    expect(result.action).toBe('allow');
+    expect(hitl.getState()).toBe('idle');
+  });
+
+  it('should resolve waitForResolution with user decision on DENY', async () => {
+    hitl.pause(makeAction(), makeBlockedDecision());
+
+    const promise = hitl.waitForResolution();
+    hitl.resolve('deny');
+
+    const result = await promise;
+    expect(result.action).toBe('deny');
+  });
+
+  it('should reject waitForResolution on TERMINATE', async () => {
+    hitl.pause(makeAction(), makeBlockedDecision());
+
+    const promise = hitl.waitForResolution();
+
+    try {
+      hitl.resolve('terminate');
+    } catch {
+      // Expected to throw
+    }
+
+    await expect(promise).rejects.toThrow(SessionTerminatedError);
+  });
+
+  it('should auto-deny via waitForResolution on timeout', async () => {
+    const hitlWithTimeout = new HITLStateMachine({ timeoutMs: 10 });
+
+    hitlWithTimeout.pause(makeAction(), makeBlockedDecision());
+
+    const promise = hitlWithTimeout.waitForResolution();
+
+    const result = await promise;
+    expect(result.action).toBe('deny');
+    expect(hitlWithTimeout.getState()).toBe('idle');
+  });
 });
