@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { createTestRunnerTool, createLintRunnerTool } from './test-runner.js';
-import type { Tool } from './types.js';
 
 describe('createTestRunnerTool', () => {
   it('should create a test runner tool with correct metadata', () => {

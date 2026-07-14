@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { HITLStateMachine, SessionTerminatedError } from './hitl-state-machine.js';
 import type { GuardrailDecision } from './guardrail.js';
 import type { Action } from '../core/action-parser.js';

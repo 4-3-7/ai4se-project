@@ -81,7 +81,7 @@ export class AgentLoop {
     let finalOutput = '';
     let stoppedBecause = '';
 
-    while (true) {
+    while (true) { // eslint-disable-line no-constant-condition
       turns++;
 
       // Call LLM

@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { AgentLoop } from './agent-loop.js';
 import type { AgentLoopConfig } from './agent-loop.js';
 import { MockLLMProvider } from '../core/llm/mock.js';
-import type { Message, LLMResponse } from '../core/llm/types.js';
+import type { Message } from '../core/llm/types.js';
 import { ToolRegistry } from '../tools/registry.js';
 import type { Tool } from '../tools/types.js';
 import { HITLStateMachine } from '../governance/hitl-state-machine.js';
@@ -24,22 +24,6 @@ function makeMockTool(name: string): Tool {
     parameters: { type: 'object', properties: {}, required: [] },
     execute: vi.fn().mockResolvedValue({ success: true, data: `result from ${name}` }),
   };
-}
-
-function makeScriptedMock(responses: LLMResponse[]): MockLLMProvider {
-  let callCount = 0;
-  return new MockLLMProvider(
-    [
-      {
-        match: () => {
-          const idx = callCount++;
-          return idx < responses.length;
-        },
-        response: {} as LLMResponse, // Placeholder, overridden in match side effect
-      },
-    ],
-    'scripted-mock',
-  );
 }
 
 // ── Tests ──
