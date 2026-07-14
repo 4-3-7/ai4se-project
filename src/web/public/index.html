@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seahorse — Web Terminal</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #1a1a2e;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #16213e;
+      padding: 12px 20px;
+      border-bottom: 1px solid #0f3460;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #e94560;
+    }
+    header .status {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: #0f3460;
+    }
+    header .status.connected {
+      background: #1b5e20;
+      color: #81c784;
+    }
+    header .status.disconnected {
+      background: #b71c1c;
+      color: #ef9a9a;
+    }
+    #terminal-container {
+      flex: 1;
+      padding: 8px;
+    }
+    #terminal-container .xterm {
+      height: 100%;
+    }
+    footer {
+      background: #16213e;
+      padding: 6px 20px;
+      font-size: 11px;
+      color: #666;
+      border-top: 1px solid #0f3460;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🐴 Seahorse</h1>
+    <span id="status" class="status disconnected">disconnected</span>
+  </header>
+
+  <div id="terminal-container"></div>
+
+  <footer>
+    <span>Seahorse v0.1.0 — Web Terminal</span>
+    <span id="connection-info">ws://localhost:3000</span>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+  <script>
+    // ── Terminal setup ──
+    const term = new Terminal({
+      cursorBlink: true,
+      fontSize: 14,
+      fontFamily: "'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace",
+      theme: {
+        background: '#1a1a2e',
+        foreground: '#e0e0e0',
+        cursor: '#e94560',
+        selectionBackground: '#0f3460',
+        black: '#1a1a2e',
+        red: '#e94560',
+        green: '#81c784',
+        yellow: '#ffd54f',
+        blue: '#64b5f6',
+        magenta: '#ce93d8',
+        cyan: '#4dd0e1',
+        white: '#e0e0e0',
+        brightBlack: '#333',
+        brightRed: '#ff6b81',
+        brightGreen: '#a5d6a7',
+        brightYellow: '#ffe082',
+        brightBlue: '#90caf9',
+        brightMagenta: '#e1bee7',
+        brightCyan: '#80deea',
+        brightWhite: '#ffffff',
+      },
+    });
+
+    const fitAddon = new FitAddon.FitAddon();
+    term.loadAddon(fitAddon);
+
+    const container = document.getElementById('terminal-container');
+    term.open(container);
+    fitAddon.fit();
+
+    window.addEventListener('resize', () => fitAddon.fit());
+
+    // ── WebSocket connection ──
+    const statusEl = document.getElementById('status');
+    const connInfo = document.getElementById('connection-info');
+    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${location.host}`;
+    connInfo.textContent = wsUrl;
+
+    let ws = null;
+
+    function connect() {
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        statusEl.textContent = 'connected';
+        statusEl.className = 'status connected';
+        term.writeln('\x1b[1;32m🐴 Connected to Seahorse Web Terminal\x1b[0m');
+        term.writeln('');
+        term.write('\x1b[1;36m$\x1b[0m ');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'welcome') {
+            term.writeln(`\x1b[1;35m${msg.message} v${msg.version}\x1b[0m`);
+            term.writeln('Type a message to send to the agent.');
+            term.writeln('');
+            term.write('\x1b[1;36m$\x1b[0m ');
+          } else if (msg.type === 'output') {
+            term.write(msg.data);
+          } else if (msg.type === 'pong') {
+            // ignore
+          } else if (msg.type === 'error') {
+            term.writeln(`\x1b[1;31m[Error] ${msg.message}\x1b[0m`);
+          }
+        } catch {
+          term.write(event.data);
+        }
+      };
+
+      ws.onclose = () => {
+        statusEl.textContent = 'disconnected';
+        statusEl.className = 'status disconnected';
+        term.writeln('\x1b[1;31m🔌 Disconnected. Reconnecting in 3s...\x1b[0m');
+        setTimeout(connect, 3000);
+      };
+
+      ws.onerror = () => {
+        term.writeln('\x1b[1;31m⚠️  Connection error\x1b[0m');
+      };
+    }
+
+    // ── User input ──
+    let inputBuffer = '';
+
+    term.onData((data) => {
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+      if (data === '\r') {
+        // Enter — send the input
+        term.write('\r\n');
+        const input = inputBuffer.trim();
+        inputBuffer = '';
+
+        if (input) {
+          ws.send(JSON.stringify({ type: 'input', data: input }));
+        } else {
+          term.write('\x1b[1;36m$\x1b[0m ');
+        }
+      } else if (data === '\x7f') {
+        // Backspace
+        if (inputBuffer.length > 0) {
+          inputBuffer = inputBuffer.slice(0, -1);
+          term.write('\b \b');
+        }
+      } else {
+        inputBuffer += data;
+        term.write(data);
+      }
+    });
+
+    connect();
+  </script>
+</body>
+</html>
