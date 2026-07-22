@@ -18,6 +18,9 @@ coverage/
 .DS_Store
 Thumbs.db
 
+# Claude Code
+.claude/
+
 # Secrets
 *.pem
 *.key
