@@ -5,9 +5,13 @@
 > LLM 相当于 CPU，只负责"决定下一步做什么"这一行任务决策；其余都是工程。Seahorse 把一只只会产生下一步设想的 LLM，封装成一台能稳定、可靠工作的 coding agent 系统。
 
 [![CI](https://github.com/4-3-7/ai4se-project/actions/workflows/ci.yml/badge.svg)](https://github.com/4-3-7/ai4se-project/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/badge/release-v0.1.0-blue)](https://github.com/4-3-7/ai4se-project/releases/tag/v0.1.0)
 [![Node.js](https://img.shields.io/badge/node-%E2%89%A522.0.0-brightgreen)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+
+> **项目地址**：[github.com/4-3-7/ai4se-project](https://github.com/4-3-7/ai4se-project)  
+> **Release 下载**：[v0.1.0](https://github.com/4-3-7/ai4se-project/releases/tag/v0.1.0)
 
 ---
 
